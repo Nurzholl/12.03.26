@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TypeScript Dashboard</title>
+    <style>
+        body { font-family: sans-serif; background: #f0f2f5; padding: 20px; color: #333; }
+        .container { max-width: 1000px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h2 { margin-top: 0; color: #1a73e8; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        
+        /* Стили для списков */
+        .list-container { margin-top: 15px; border: 1px solid #ddd; border-radius: 4px; min-height: 150px; padding: 10px; }
+        .item { display: flex; justify-content: space-between; padding: 8px; border-bottom: 1px solid #eee; }
+        
+        /* Кнопки и формы */
+        .controls { margin-top: 15px; display: flex; flex-direction: column; gap: 10px; }
+        input, select { padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+        button { cursor: pointer; background: #1a73e8; color: white; border: none; padding: 10px; border-radius: 4px; font-weight: bold; }
+        button:hover { background: #1557b0; }
+        
+        .status { font-size: 0.9em; color: #666; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="card">
+            <h2>Менеджер курсов</h2>
+            <div class="controls">
+                <input type="text" id="courseTitle" placeholder="Название курса">
+                <input type="number" id="courseDuration" placeholder="Длительность (ч)">
+                <button id="addCourseBtn">Добавить курс</button>
+            </div>
+            <div id="courseList" class="list-container">
+                </div>
+        </div>
+
+        <div class="card">
+            <h2>Склад товаров</h2>
+            <div class="controls">
+                <input type="text" id="prodName" placeholder="Товар">
+                <input type="number" id="prodPrice" placeholder="Цена">
+                <input type="number" id="prodQty" placeholder="Кол-во">
+                <button id="addProdBtn">Добавить в корзину</button>
+            </div>
+            <div id="productList" class="list-container">
+                </div>
+            <div class="status">Общая стоимость: <span id="totalPrice">0</span> ₸</div>
+        </div>
+    </div>
+    <script src="app.js"></script>
+    <script>
+        // 1. Initialize the Store
+        var store = new ProductStore();
+
+        // 2. DOM Element References
+        var prodNameInput = document.getElementById('prodName');
+        var prodPriceInput = document.getElementById('prodPrice');
+        var prodQtyInput = document.getElementById('prodQty');
+        var addProdBtn = document.getElementById('addProdBtn');
+        var productList = document.getElementById('productList');
+        var totalPriceDisplay = document.getElementById('totalPrice');
+
+        // 3. Render Function
+        function renderProducts() {
+            productList.innerHTML = "";
+            var total = 0;
+
+            store.allProducts.forEach(function(p) {
+                var div = document.createElement('div');
+                div.className = "item";
+                div.innerHTML = "<span>" + p.name + " (" + p.quantity + " шт.)</span>" +
+                                "<span>" + (p.price * p.quantity) + " ₸</span>";
+                productList.appendChild(div);
+                total += (p.price * p.quantity);
+            });
+
+            totalPriceDisplay.innerText = total.toString();
+        }
+
+        // 4. Event Listener for "Склад товаров"
+        addProdBtn.addEventListener('click', function() {
+            var name = prodNameInput.value;
+            var price = parseFloat(prodPriceInput.value);
+            var qty = parseInt(prodQtyInput.value);
+
+            if (name && !isNaN(price) && !isNaN(qty)) {
+                var newProduct = {
+                    id: Date.now(), // simple unique ID
+                    name: name,
+                    price: price,
+                    quantity: qty
+                };
+
+                store.addProduct(newProduct);
+                renderProducts();
+
+                // Clear inputs
+                prodNameInput.value = "";
+                prodPriceInput.value = "";
+                prodQtyInput.value = "";
+            } else {
+                alert("Пожалуйста, заполните все поля корректно");
+            }
+        });
+
+        // 5. Logic for "Менеджер курсов" (Generic Array implementation)
+        var courses = [];
+        var courseTitleInput = document.getElementById('courseTitle');
+        var courseDurationInput = document.getElementById('courseDuration');
+        var addCourseBtn = document.getElementById('addCourseBtn');
+        var courseList = document.getElementById('courseList');
+
+        addCourseBtn.addEventListener('click', function() {
+            var title = courseTitleInput.value;
+            var duration = courseDurationInput.value;
+
+            if (title && duration) {
+                courses.push({ title: title, duration: duration });
+                
+                var div = document.createElement('div');
+                div.className = "item";
+                div.innerHTML = "<span>" + title + "</span><span>" + duration + " ч.</span>";
+                courseList.appendChild(div);
+
+                courseTitleInput.value = "";
+                courseDurationInput.value = "";
+            }
+        });
+    </script>
+</body>
+</html>
